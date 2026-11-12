@@ -111,7 +111,9 @@ Ordem fixa, de montante para jusante. `calc()` é embrulhada por vários PATCHs 
 | `T3sarjCorrige()` | rua alagando → caixa a montante (`addBLMontante`) |
 | `gerProjeto(op)` | 🧭 gera a rede pela topografia (3 opções `GER_OP`: mínima, recomendada, folgada) → `gerEng16` (testa greide × rasa × saída levantada) → `pvPadrao18` (PV colado/especial) → `revisa20` |
 | `corr21('err'/'warn')` | botões da aba 13: correção da rede inteira até o deságue, passo a passo, desfaz o que piora |
-| `prof23()` (DR-23, em andamento) | compara Ø maior × galeria para PVs acima de 3 m |
+| `galCompara23()` / `galAuto23()` (DR-23) | PV > 3 m com tubo grande: rede inteira com tubos × galeria até o deságue; aplica a melhor (`P.crit.galCustoMax`) |
+| `galJus23()` (DR-23) | galeria segue até o deságue sem diminuir |
+| `checks24` / `dissip24` (DR-24) | velocidade na sarjeta, área > 2 km², PV de queda, bacia de dissipação por ressalto |
 
 Regra de ouro das correções: **toda mudança refaz a rede inteira até o deságue** (`propaga21`: `autoCotas` 2×, Ø não diminui a jusante, remanso `gerRemanso16`, saída afogada `gerLevanta16`) e **é desfeita se aumentar os erros**.
 
@@ -129,7 +131,7 @@ Regra de ouro das correções: **toda mudança refaz a rede inteira até o desá
 - PVs ao longo da rua a 30–50 m (mais perto só com muita inclinação ou para atender ramais).
 - Não corrigir sozinho ao mexer na chuva do 3D: só alerta; corrige no 🛠 Redimensionar.
 - O programa não aprofunda sozinho em casos de decisão (PV raso de cabeceira, PV > 4 m, ramal > 15 m), salvo nos botões de correção.
-- **Galeria vai até o deságue e nunca volta para tubo**; em confluência de ruas grandes que pede tubo muito maior e mais fundo, considerar galeria automaticamente (pedido de 12/11/2026, ainda não implementado — ver DR-23).
+- **Galeria vai até o deságue e nunca volta para tubo**; em confluência de ruas grandes que pede tubo muito maior e mais fundo, considerar galeria automaticamente (DR-23, implementado no Drenagem Pluvial 2).
 
 ## 7. Pendências conhecidas
 - “Velocidade no lançamento” ~4,96 m/s no exemplo com declive: falta bacia de dissipação dimensionada e orçada.
@@ -193,10 +195,10 @@ A sessão não abriu os PDFs (rede bloqueada para `fundacaorioaguas.prefeitura.r
 - Memorial: citar TR, IDF (fonte), C, tc, n de Manning, K e os critérios adotados ✔ (aba 14).
 
 ### 8.4 Melhorias sugeridas para o programa (por prioridade)
-1. Galeria automática na confluência e **até o deságue** (pedido do dono; DR-23 em andamento).
-2. Bacia de dissipação no lançamento (DNIT 022/2023): dimensionar pelo ressalto hidráulico e orçar.
-3. Verificação “Velocidade na sarjeta ≤ 3 m/s”.
-4. Aviso de método racional com área acumulada > 2 km².
+1. ✔ Galeria automática e até o deságue (DR-23).
+2. ✔ Bacia de dissipação por ressalto (Fr > 1,7) orçada (DR-24); falta bacia por impacto USBR VI para Fr ≤ 1,7.
+3. ✔ Velocidade na sarjeta (DR-24).
+4. ✔ Área > 2 km² (DR-24).
 5. Classe do tubo (PA-1 a PA-4) pela altura de aterro (NBR 8890), não só pelo recobrimento mínimo.
-6. PV de queda quando o degrau passar do limite adotado.
+6. ✔ PV de queda (DR-24, alerta acima de 1,00 m).
 7. Conferir na IT Rio-Águas (§3.1.2–3.1.4, Tabela 2) e ajustar os padrões `vmin`, `recob`, `dmin` e o tc inicial.

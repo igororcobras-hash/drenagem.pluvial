@@ -11789,7 +11789,7 @@ function cabeceira18() {
     return m;
   };
   /* gerador e 🛠: PVs no tamanho padrão da base (PV ao lado quando não cabe) */
-  if (typeof gerEng16 === 'function') { const ge18 = gerEng16; gerEng16 = function () { const r = ge18.apply(this, arguments); try { if (GER.pvGrande) P.crit.pvGrande = GER.pvGrande; window.__pvPad18 = pvPadrao18(); } catch (e) { console.error('DR-18 PV padrão', e); } return r; }; }
+  if (typeof gerEng16 === 'function') { const ge18 = gerEng16; gerEng16 = function () { const r = ge18.apply(this, arguments); try { if (GER.pvGrande) P.crit.pvGrande = GER.pvGrande; try { if (typeof galAuto23 === 'function') window.__gal23 = galAuto23(); } catch (e) { console.error('DR-23 gerador', e); } window.__pvPad18 = pvPadrao18(); } catch (e) { console.error('DR-18 PV padrão', e); } return r; }; }
   /* planta: deságues */
   const svp18 = svgPlanta;
   svgPlanta = function (K, W, H, st, lay) {
@@ -12000,6 +12000,7 @@ function propaga21() {
   calc();
 }
 function geral21() {   // sarjetas, caixas, ramais, diâmetros e velocidades
+  try { if (typeof galJus23 === 'function') galJus23(); } catch (e) { console.error('DR-23', e); }
   autoCotas(true); calc(); autoDimensionar(); calc(); autoCorrigir();
   try { T3diamPrimeiro(); T3sarjCorrige(); autoCorrigir(); T3diamPrimeiro(); } catch (e) { console.error('DR-21 geral', e); }
   try { revisa20(); } catch (e) { console.error('DR-21 revisa', e); }
@@ -12024,7 +12025,7 @@ function corr21(modo) {
           passos.push(passo21('Sarjetas, caixas, ramais, diâmetros e velocidades', geral21, true));
           for (let k = 0; k < 2; k++) {
             const r1 = passo21('PVs rasos — aprofundar a rede', raso21, true); passos.push(r1);
-            const r2 = passo21('PVs fundos (> 4 m) — galeria de aduelas mais baixa', fundo21, true); passos.push(r2);
+            const r2 = passo21('PVs com mais de 3 m — Ø maior × galeria de aduelas (fica o melhor)', fundo21, false); passos.push(r2);
             const r3 = passo21('PV maior que a tabela da base — PV ao lado', ladoPV21, true); passos.push(r3);
             if (!r1.ok && !r2.ok && !r3.ok) break;
           }
@@ -12078,6 +12079,10 @@ function pvGrandeSet22(v) { P.crit.pvGrande = v; GER.pvGrande = v; save(); if (t
     g22.apply(this, arguments);
     try { const sel = $('ger-pv'), f = sel && sel.closest('.field'); if (!f || $('ger-pvg')) return;
       const d = document.createElement('div'); d.className = 'field'; d.style.gridColumn = 'span 2';
+      const d2 = document.createElement('div'); d2.className = 'field'; d2.style.gridColumn = 'span 2';
+      const gm = typeof galMax23 === 'function' ? galMax23() : 0.3;
+      d2.innerHTML = `<label>Galeria no lugar de tubo grande e fundo (PV &gt; 3 m), até o deságue</label><select onchange="P.crit.galCustoMax=+this.value;if(GER.ops)gerCalcular()">${[[0, 'só se não ficar mais cara'], [0.3, 'até +30 % no custo'], [0.6, 'até +60 % no custo'], [9, 'sempre que reduzir a profundidade']].map(([k, t]) => `<option value="${k}"${Math.abs(gm - k) < 1e-9 ? ' selected' : ''}>${t}</option>`).join('')}</select>`;
+      f.after(d2);
       d.innerHTML = `<label>PV que não cabe na tabela da base (muitas ligações)</label><select id="ger-pvg" onchange="GER.pvGrande=this.value;if(GER.ops)gerCalcular()">${PVG22.map(([k, t]) => `<option value="${k}"${(GER.pvGrande || 'colado') === k ? ' selected' : ''}>${t}</option>`).join('')}</select>`;
       f.after(d);
     } catch (e) { console.error('DR-22 tela', e); }
@@ -12089,10 +12094,198 @@ function pvGrandeSet22(v) { P.crit.pvGrande = v; GER.pvGrande = v; save(); if (t
       const bx = `<div class="card" style="display:flex;gap:.7rem;align-items:center;flex-wrap:wrap"><label style="font-size:.8rem;font-weight:600">PV que não cabe na tabela da base:</label>
         <select onchange="pvGrandeSet22(this.value)" style="min-width:280px">${PVG22.map(([k, t]) => `<option value="${k}"${v === k ? ' selected' : ''}>${t}</option>`).join('')}</select>
         <span style="font-size:.76rem;color:var(--muted);flex:1;min-width:220px">Vale para 🛠 Corrigir alertas e para o 🧭 Gerar 3 opções. “Colados”: o PV novo encosta no antigo e recebe parte dos ramais. “Especial”: o PV fica grande e o alerta “Modelo de PV na base” continua até o projeto estrutural.</span></div>`;
-      h = h.replace(/(<div id="v21-msg">)/, bx + '$1');
+      const gm = galMax23(), GO = [[0, 'só se não ficar mais cara'], [0.3, 'até +30 % no custo'], [0.6, 'até +60 % no custo'], [9, 'sempre que reduzir a profundidade']];
+      const bx2 = `<div class="card" style="display:flex;gap:.7rem;align-items:center;flex-wrap:wrap"><label style="font-size:.8rem;font-weight:600">Galeria de aduelas no lugar de tubo grande e fundo (PV &gt; 3 m), até o deságue:</label>
+        <select onchange="P.crit.galCustoMax=+this.value;save();renderTab()" style="min-width:240px">${GO.map(([k, t]) => `<option value="${k}"${Math.abs(gm - k) < 1e-9 ? ' selected' : ''}>${t}</option>`).join('')}</select>
+        <span style="font-size:.76rem;color:var(--muted);flex:1;min-width:220px">Usado no 🧭 gerador, no 🛠 Redimensionar do 3D e no 🛠 Corrigir alertas. O programa calcula a rede inteira com tubos e com galeria e mostra os dois.</span></div>`;
+      h = h.replace(/(<div id="v21-msg">)/, bx + bx2 + '$1');
     } catch (e) { console.error('DR-22 verif', e); }
     return h;
   };
+})();
+</script>
+<script>
+/* =====================================================================
+   PATCH DR-23 (12/11/2026) — GALERIA DE ADUELAS × TUBO MAIOR, com as regras do dono:
+   (1) a galeria, depois que começa, segue ATÉ O DESÁGUE e nunca volta para tubo (galJus23; erro na
+       verificação "Galeria descarrega em tubo"); largura, altura e nº de células não diminuem a jusante;
+   (2) quando a confluência de redes grandes pede tubo grande e afunda a rede (PV > 3 m, P.crit.profComp),
+       o programa calcula a REDE INTEIRA de duas formas — tubos (como está) e galeria a partir do trecho
+       grande até o deságue (variantes Ø ≥ 1500 e Ø ≥ 1200) — e fica com a melhor (galAuto23):
+       sem mais erros; vence a que deixa menos PVs acima de 3 m (pelo menos 25 % menos) sem passar de
+       +30 % no custo; empate → menor custo.
+   Onde: 🧭 gerador (antes do PV colado), 🛠 Redimensionar do 3D (com quadro e ↶) e 🛠 Corrigir alertas.
+   Também: a base escolhida no gerador define os modelos de PV (DR-23b).
+   ===================================================================== */
+let PROF23 = null;
+function galMax23() { const v = P && P.crit ? num(P.crit.galCustoMax) : null; return isNum(v) && v >= 0 ? v : 0.30; }   // acréscimo de custo aceito pela galeria (fração; 9 = sempre)
+function lim23() { return num(P.crit.profComp) > 0 ? num(P.crit.profComp) : 3.0; }
+/* menor aduela que leva Q com y/H ≤ yD, sem diminuir em relação aos mínimos (N, B, H) */
+function galSec23(Q, S, min) {
+  const c = P.crit; let best = null;
+  for (let N = Math.max(1, min.N || 1); N <= 4; N++) GAL_PAD.forEach(([B, H]) => {
+    if (B < (min.B || 0) - 1e-6 || H < (min.H || 0) - 1e-6) return;
+    const g = {B, H, N, A: N * B * H};
+    if (isNum(S) && S > 0 && isNum(Q) && Q > 0) { const h = rectFlow(Q, g, S, c.nTubo); if (h.carga || h.yD == null || h.yD > c.yD + 1e-9) return; }
+    if (!best || g.H < best.H - 1e-6 || (Math.abs(g.H - best.H) < 1e-6 && g.A < best.A - 1e-6)) best = g;
+  });
+  return best;
+}
+function setGal23(t, g) { t.sec = 'gal'; t.galN = g.N; t.galB = g.B; t.galH = g.H; t.galE = ''; normSec(t); }
+/* regra (1): tudo a jusante de uma galeria é galeria, sem diminuir */
+function galJus23() {
+  let mud = 0;
+  for (let it = 0; it < 6; it++) {
+    calc(); let m = 0;
+    (R.ordem || []).forEach(t0 => {
+      const t = P.trechos.find(x => x.id === t0.id); if (!t) return;
+      const ups = P.trechos.filter(u => u.j === t.m).map(galOf).filter(Boolean); if (!ups.length) return;
+      const min = {N: Math.max(...ups.map(g => g.N)), B: Math.max(...ups.map(g => g.B)), H: Math.max(...ups.map(g => g.H))};
+      const g0 = galOf(t), r = R.tr[t.id];
+      if (g0 && g0.N >= min.N && g0.B >= min.B - 1e-6 && g0.H >= min.H - 1e-6) return;
+      const g = galSec23(r && r.Q, r && r.S, g0 ? {N: Math.max(min.N, g0.N), B: Math.max(min.B, g0.B), H: Math.max(min.H, g0.H)} : min) || {N: Math.max(min.N, 1), B: min.B, H: min.H};
+      setGal23(t, g); m++;
+    });
+    mud += m; if (!m) break; autoCotas(true); calc();
+  }
+  return mud;
+}
+function resumo23(lim) { calc(); const c = pontuacao(); let n = 0, pm = 0; P.pvs.forEach(pv => { const p = (R.pv[pv.id] || {}).prof || 0; if (p > lim + 1e-6) n++; pm = Math.max(pm, p); }); return {e: c.e, w: c.w, custo: c.custo, n, pm, gal: P.trechos.filter(t => galOf(t)).length}; }
+/* alternativa: galeria a partir dos trechos com Ø ≥ th, até o deságue, rede inteira refeita */
+function variante23(th) {
+  calc(); let k = 0;
+  (R.ordem || []).forEach(t0 => { const t = P.trechos.find(x => x.id === t0.id), r = R.tr[t.id]; if (!t || galOf(t) || (+t.D || 0) < th) return;
+    const D = (+t.D || 0) / 1000, g = galSec23(r && r.Q, r && r.S, {}); if (!g || g.H > D - 0.05) return; setGal23(t, g); k++; });
+  if (!k) return 0;
+  galJus23(); autoCotas(true); calc(); autoCotas(true); calc();
+  try { autoCorrigir(); } catch (e) { console.error('DR-23', e); }
+  galJus23(); try { propaga21(); } catch (e) { console.error('DR-23 propaga', e); } galJus23(); calc();
+  return k;
+}
+/* compara tubos × galeria (variantes) e devolve a melhor, sem alterar P */
+function galCompara23() {
+  const lim = lim23(), A = resumo23(lim), sA = JSON.stringify(P), out = {lim, A, sA, vars: [], melhor: null};
+  if (!A.n || !P.trechos.some(t => !galOf(t) && (+t.D || 0) >= 1000)) { out.motivo = !A.n ? 'nenhum PV acima de ' + fmt(lim, 2) + ' m' : 'não há tubo de Ø ≥ 1,00 m: a galeria não reduz a altura'; return out; }
+  let prevSet = '';
+  for (const th of [1500, 1200]) {   // Ø1000 não vira aduela (a menor tem 1,00 m de altura)
+    const set = P.trechos.filter(t => !galOf(t) && (+t.D || 0) >= th).map(t => t.id).join(','); if (!set || set === prevSet) continue; prevSet = set;
+    let k = 0, B = null;
+    try { gerSemUI(() => { k = variante23(th); }); if (k) B = resumo23(lim); } catch (e) { console.error('DR-23 variante', e); }
+    if (B) out.vars.push({th, k, B, s: JSON.stringify(P)});
+    P = migrate(JSON.parse(sA)); calc();
+    if (B && B.e <= A.e && B.n <= A.n * 0.75 && B.custo <= A.custo * (1 + galMax23())) break;   // já serve: não precisa da variante menor
+  }
+  const ok = out.vars.filter(v => v.B.e < A.e || (v.B.e <= A.e && (v.B.n <= A.n * 0.75 || v.B.pm < A.pm - 0.5) && v.B.custo <= A.custo * (1 + galMax23())))
+    .sort((a, b) => a.B.e - b.B.e || a.B.n - b.B.n || a.B.custo - b.B.custo);
+  out.melhor = ok[0] || null;
+  out.motivo = out.melhor ? (out.melhor.B.e < A.e ? 'a galeria deixa a rede com menos erros (' + A.e + ' → ' + out.melhor.B.e + '); ' : '') + 'a galeria a partir dos tubos de Ø ≥ ' + fmt(out.melhor.th / 1000, 2) + ' m até o deságue deixa ' + out.melhor.B.n + ' PV(s) acima de ' + fmt(lim, 1) + ' m (antes ' + A.n + '), prof. máx. ' + fmt(out.melhor.B.pm, 2) + ' m (antes ' + fmt(A.pm, 2) + ')'
+    : (out.vars.length ? (out.vars.some(v => v.B.e > A.e) ? 'a galeria criaria erro(s)' : out.vars.some(v => v.B.custo > A.custo * (1 + galMax23())) ? 'a galeria ficaria ' + fmt(100 * (Math.min(...out.vars.map(v => v.B.custo)) / A.custo - 1), 0) + ' % mais cara (limite escolhido: ' + (galMax23() >= 9 ? 'sem limite' : '+' + fmt(100 * galMax23(), 0) + ' %') + ')' : 'a galeria não reduz o bastante a profundidade') + ' — ficam os tubos' : 'nenhum trecho aceita aduela mais baixa que o tubo');
+  return out;
+}
+/* aplica sozinho quando a galeria vence (gerador, 🛠, corrigir alertas) */
+function galAuto23() { const x = galCompara23(); PROF23 = x; if (x.melhor) { P = migrate(JSON.parse(x.melhor.s)); calc(); } return x; }
+function quadro23(x) {
+  if (!x || !x.vars || !x.vars.length) return x && x.A && x.A.n ? '<div style="margin-top:.4rem"><b>Profundidade &gt; ' + fmt(x.lim, 2) + ' m</b> — ' + esc(x.motivo) + '.</div>' : '';
+  const R$ = v => 'R$ ' + fmt(v || 0, 0), td = v => `<td style="padding:.1rem .4rem;text-align:right">${v}</td>`, li = (t, o) => `<tr><td style="padding:.1rem .4rem">${t}</td>${td(o.n)}${td(fmt(o.pm, 2) + ' m')}${td(o.e)}${td(o.w)}${td(R$(o.custo))}</tr>`;
+  return `<div style="margin-top:.4rem"><b>Profundidade &gt; ${fmt(x.lim, 2)} m — tubos × galeria de aduelas até o deságue</b>
+    <table style="border-collapse:collapse;margin:.25rem 0;font-size:inherit"><tr style="opacity:.8"><td></td><td style="padding:.1rem .4rem">PVs &gt; ${fmt(x.lim, 1)} m</td><td style="padding:.1rem .4rem">prof. máx.</td><td style="padding:.1rem .4rem">erros</td><td style="padding:.1rem .4rem">alertas</td><td style="padding:.1rem .4rem">custo da rede</td></tr>
+    ${li('Tubos', x.A)}${x.vars.map(v => li('Galeria a partir de Ø' + v.th + ' (' + v.B.gal + ' trechos)', v.B)).join('')}</table>
+    ${x.melhor ? '✔ <b>Aplicado: galeria</b> — ' : '✔ <b>Ficam os tubos</b> — '}${esc(x.motivo)}.${x.melhor ? ' Use ↶ para voltar aos tubos.' : ''}</div>`;
+}
+(function () {
+  /* verificação: galeria nunca descarrega em tubo (regra do dono) */
+  POS_CALC.push(['Galeria até o deságue (DR-23)', 'checksGal23']);
+  /* DR-23b: a base escolhida no gerador define também os MODELOS DE PV */
+  const ge23 = gerEng16;
+  gerEng16 = function () { try { if (GER.banco) { P.custos = P.custos || {}; P.custos.banco = GER.banco; } if (!P.crit.pvGrande) P.crit.pvGrande = GER.pvGrande || 'colado'; } catch (e) {} return ge23.apply(this, arguments); };
+  /* 3D 🛠 Redimensionar: depois da correção, compara tubos × galeria e aplica a melhor (entra no ↶) */
+  const r23 = T3redimensionar;
+  T3redimensionar = function () {
+    const h0 = JSON.stringify(P), c0 = window.confirm; let ok = false;
+    window.confirm = function () { const r = c0.apply(this, arguments); ok = ok || !!r; return r; };
+    let res; try { res = r23.apply(this, arguments); } finally { window.confirm = c0; }
+    if (!ok) return res;   // o usuário cancelou o 🛠
+    try {
+      const s0 = JSON.stringify(P); let x = null; gerSemUI(() => { x = galAuto23(); }); PROF23 = x;
+      if (x && x.melhor) { try { T3HIST.des.push(s0); if (T3HIST.des.length > 10) T3HIST.des.shift(); T3HIST.ref = []; } catch (e) {} save(); calc(); try { if (typeof refreshRes === 'function') refreshRes(); T3build(); T3dimUI(); } catch (e) {} }
+      const html = quadro23(x), box = document.getElementById('t3-box'); if (!html || !box) return res;
+      let q = document.getElementById('t3-sug'); const d = document.createElement('div'); d.id = 't3-p23'; d.innerHTML = html;
+      if (q) (q.querySelector('div > div') || q).appendChild(d);
+      else { q = document.createElement('div'); q.id = 't3-sug'; q.style.cssText = 'position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:8;max-width:min(640px,calc(100% - 40px));max-height:45%;overflow:auto;background:rgba(10,40,70,.94);color:#fff;border:1px solid #9cd3ff;border-radius:8px;padding:.5rem .7rem;font:12px/1.4 system-ui,sans-serif';
+        q.addEventListener('pointerdown', e => e.stopPropagation()); q.appendChild(d); box.appendChild(q); }
+    } catch (e) { console.error('DR-23 3D', e); }
+    return res;
+  };
+  /* aba 13 🛠 Corrigir alertas: o passo de PVs fundos usa a mesma comparação */
+  fundo21 = function () { const x = galAuto23(); if (!x.melhor) return ''; return x.melhor.k + ' trecho(s) em galeria até o deságue: PVs acima de ' + fmt(x.lim, 1) + ' m ' + x.A.n + ' → ' + x.melhor.B.n + ', custo R$ ' + fmt(x.A.custo, 0) + ' → R$ ' + fmt(x.melhor.B.custo, 0); };
+})();
+/* pós-passo do calc: galeria que descarrega em tubo = erro */
+function checksGal23(res) {
+  (res.ordem || []).forEach(t => {
+    const g = galOf(t); if (!g) return;
+    const j = res.ordem.find(u => u.m === t.j); if (!j || galOf(j)) return;
+    res.checks.push({tab: 'rede', el: j.id, par: 'Galeria descarrega em tubo', val: t.id + ' ' + secLbl(t) + ' → ' + j.id + ' Ø' + j.D, lim: 'galeria segue até o deságue', st: 'err', nota: 'Depois que a rede vira galeria, todos os trechos a jusante devem ser galeria (sem diminuir) até o deságue. Use 🛠 Corrigir erros.'});
+  });
+}
+</script>
+<script>
+/* =====================================================================
+   PATCH DR-24 (12/11/2026) — critérios da pesquisa de normas (ver .claude/skills/drenagem/CALCULOS.md §8):
+   (1) Velocidade na sarjeta ≤ P.crit.vSarjMax (3,0 m/s; Jundiaí — protege o pavimento): alerta.
+   (2) Método racional: área de contribuição acumulada de cada deságue > 2 km² (200 ha) → alerta
+       (acima disso usar hidrograma unitário SCS — manual de Campinas).
+   (3) PV de queda: degrau > P.crit.quedaMax (1,00 m) → alerta (tubo de queda / proteção do fundo).
+   (4) Bacia de dissipação por RESSALTO no lançamento quando V > 4,5 m/s (o enrocamento não basta):
+       Fr1 = V/√(g·y1); y2 = y1/2·(√(1+8·Fr1²) − 1) (Bélanger); comprimento L = 6·y2 (USBR tipo I, sem blocos);
+       largura = boca da ala; rebaixo = 1,1·y2 − y1; laje 0,25 m e paredes 0,20 m em concreto armado.
+       Concreto, forma, aço (80 kg/m³), lastro e escavação entram nas quantidades da boca (R.ala) e,
+       por isso, no orçamento. Com a bacia, "Velocidade no lançamento" passa de erro a alerta (DNIT 022/2023-ES).
+   ===================================================================== */
+const CRIT24 = {vSarjMax: 3.0, quedaMax: 1.00, dissip: 1};
+function c24(k) { const v = P && P.crit ? num(P.crit[k]) : null; return isNum(v) ? v : CRIT24[k]; }
+function sarjArea24(T, g) {   // área molhada da sarjeta (m²) por integração da profundidade ao longo da largura alagada
+  if (!(T > 0)) return 0; const y0 = sarjY(T, g), n = 40; let A = 0;
+  for (let k = 0; k < n; k++) { const x = (k + 0.5) * T / n, d = g.simples ? y0 - x * g.Sx : (x <= g.W ? y0 - x * g.Sw : y0 - g.W * g.Sw - (x - g.W) * g.Sx); A += Math.max(0, d) * T / n; }
+  return A;
+}
+function checks24(res) {
+  const c = P.crit, vmx = c24('vSarjMax'), qmx = c24('quedaMax');
+  // (1) velocidade na sarjeta
+  P.bls.forEach(b => { const r = res.bl[b.id]; if (!r || !(r.Qafl > 0) || !(r.T > 0) || !r.g) return;
+    const A = sarjArea24(r.T, r.g); if (!(A > 0)) return; const V = r.Qafl / A; r.Vsarj = V;
+    if (V > vmx) res.checks.push({tab: 'bls', el: b.id, par: 'Velocidade na sarjeta', val: fmt(V, 2) + ' m/s', lim: '≤ ' + fmt(vmx, 2) + ' m/s', st: 'warn', nota: 'Água rápida junto à guia: desgasta o pavimento e a água "pula" a caixa. Antecipe a captação (caixa a montante) ou use grelha/combinada.'}); });
+  // (2) área acumulada por deságue
+  (res.outlets || []).forEach(id => {
+    const ids = new Set((typeof montantesDe === 'function' ? montantesDe(res, id) : []).concat([id]));
+    let A = 0; P.bacias.forEach(x => { const d = x.dest, bl = P.bls.find(y => y.id === d); if (ids.has(d) || (bl && ids.has(bl.pv))) A += num(x.A) || 0; });
+    if (A > 200) res.checks.push({tab: 'bacias', el: id, par: 'Método racional — área de contribuição', val: fmt(A, 1) + ' ha (' + fmt(A / 100, 2) + ' km²)', lim: '≤ 2 km² (200 ha)', st: 'warn', nota: 'Acima de 2 km² o método racional superestima/subestima o pico: confira com hidrograma unitário (SCS) ou divida a bacia em sub-bacias com deságues próprios.'});
+  });
+  // (3) PV de queda
+  P.pvs.forEach(pv => { const r = res.pv[pv.id]; if (!r || !r.outs || !r.outs.length || !r.ins.length) return;
+    const out = r.outs[0], cmO = num(out.cm); if (!isNum(cmO)) return;
+    const dz = Math.max(...r.ins.map(t => isNum(num(t.cj)) ? num(t.cj) - cmO : -1));
+    if (dz > qmx) res.checks.push({tab: 'pvs', el: pv.id, par: 'PV de queda', val: 'degrau ' + fmt(dz, 2) + ' m', lim: '≤ ' + fmt(qmx, 2) + ' m sem tubo de queda', st: 'warn', nota: 'Queda grande dentro do PV: preveja tubo de queda (ou colchão d\'água e fundo reforçado) para não erodir a laje de fundo e permitir a inspeção.'}); });
+}
+function dissip24(res) {
+  if (!res.ala || !c24('dissip')) return;
+  Object.entries(res.ala).forEach(([id, a]) => {
+    if (!a || a.nao || !(a.V > 4.5) || !(a.y > 0)) return;
+    const g = 9.81, y1 = a.y, Fr = a.V / Math.sqrt(g * y1); if (!(Fr > 1.7)) return;
+    const y2 = y1 / 2 * (Math.sqrt(1 + 8 * Fr * Fr) - 1), L = Math.ceil(6 * y2 * 10) / 10, B = Math.max(a.We || 1, 1), reb = Math.max(0, 1.1 * y2 - y1), hp = Math.max(0.5, 1.1 * y2 + 0.30), eL = 0.25, eP = 0.20;
+    const Vc = L * (B + 2 * eP) * eL + 2 * L * hp * eP + B * hp * eP;   // laje + 2 paredes + soleira final
+    const forma = 2 * (2 * L * hp) + 2 * B * hp, aco = 80 * Vc, lastro = L * (B + 2 * eP) * 0.05, escav = L * (B + 2 * eP + 0.6) * (reb + eL + 0.05);
+    a.dissip = {Fr, y1, y2, L, B, reb, hp, Vc, forma, aco, lastro, escav};
+    a.Vc = (a.Vc || 0) + Vc; a.forma = (a.forma || 0) + forma; a.aco = (a.aco || 0) + aco; a.lastro = (a.lastro || 0) + lastro; a.escav = (a.escav || 0) + escav;
+    const k = res.checks.find(x => x.el === id && x.par === 'Velocidade no lançamento');
+    if (k && k.st === 'err') { k.st = 'warn'; k.nota = 'Velocidade alta: adotada bacia de dissipação por ressalto (ver abaixo); confira o nível d\'água a jusante (o ressalto precisa de y2) na obra.'; }
+    res.checks.push({tab: 'pvs', el: id, par: 'Bacia de dissipação (ressalto)', val: 'L ' + fmt(L, 1) + ' m × B ' + fmt(B, 2) + ' m · rebaixo ' + fmt(reb, 2) + ' m · paredes ' + fmt(hp, 2) + ' m', lim: 'Fr1 ' + fmt(Fr, 2) + ' · y1 ' + fmt(y1, 2) + ' → y2 ' + fmt(y2, 2) + ' m (Bélanger; L = 6·y2, USBR I)', st: 'ok', nota: 'Concreto ' + fmt(Vc, 2) + ' m³ somado à boca de lançamento no orçamento.'});
+  });
+}
+(function () {
+  Object.assign(CRITR, {vSarjMax: [1.5, 5.0], quedaMax: [0.3, 2.0]});
+  const iA = POS_CALC.findIndex(x => x[1] === 'calcAlas');
+  POS_CALC.splice(iA + 1, 0, ['Bacia de dissipação (DR-24)', 'dissip24']);
+  POS_CALC.push(['Sarjeta, área e queda (DR-24)', 'checks24']);
 })();
 </script>
 </body></html>
